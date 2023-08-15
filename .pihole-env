@@ -1,0 +1,34 @@
+
+# host server ip
+SERVER_IP=$(ip route get 8.8.8.8 | awk -F"src " 'NR==1{split($2,a," ");print a[1]}')
+export SERVER_IP
+
+# host name
+SERVER_NAME=$(uname -n)-docker
+export SERVER_NAME
+
+# timezone
+TZ='Europe/Vienna'
+export TZ
+
+
+# docker images
+pihole_image="pihole/pihole:latest"
+stubby_image="juharov/stubby-vance-arm:latest"
+dnscrypt_image="klutchell/dnscrypt-proxy:2.1.5"
+export pihole_image stubby_image dnscrypt_image
+
+# pihole webpassword. set environment variable outside
+PIHOLE_WEB_PASSWORD='xxxxxxxxxxxxxxxxxxxx'
+export PIHOLE_WEB_PASSWORD
+
+
+# custom config
+#DNSCRYPT_CONF=./config/dnscrypt-proxy-klutchell.toml
+DNSCRYPT_CONF=./config/dnscrypt-proxy.toml
+
+#STUBBY_CONF=./config/stubby-clouldflare.yml
+STUBBY_CONF=./config/stubby-quad9.yml
+
+export DNSCRYPT_CONF STUBBY_CONF
+
