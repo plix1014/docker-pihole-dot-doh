@@ -3,7 +3,10 @@ Pi-hole with stubby and dnscrypt-proxy dockerized
 
 Configuration is based on the c't article 21'04, page 134-139 "Doppelt verschlüsselt. Raspi mit DNS-Filter für Fritzbox & Co."
 
-* **[Heise c't 21'04](https://www.heise.de/select/ct/2021/4/2030412421734924519)
+* [Heise c't 21'04](https://www.heise.de/select/ct/2021/4/2030412421734924519)
+
+
+Docker images used:
 
 * [Pi-hole docker](https://github.com/pi-hole/docker-pi-hole) - AD-Blocker
 * [DNSCrypt-proxy docker](https://github.com/klutchell/dnscrypt-proxy-docker) - DoH Resolver
@@ -29,6 +32,13 @@ The subdirectory *stubby* contains the modified Dockerfile from [Matthew Vance](
 
 ### config dir
 
+original config
+* config/dnscrypt-proxy-klutchell.toml
+* config/stubby-clouldflare.yml
+
+heise - ct suggestion
+* config/dnscrypt-proxy.toml
+* config/stubby-quad9.yml
 
 ## pihole.sh start/stop script
 
@@ -128,5 +138,4 @@ ct.de.			43097	IN	A	193.99.144.80
 ## License
 
 This project is licensed under the Attribution-NonCommercial-ShareAlike 4.0 International License - see the [LICENSE.md](LICENSE.md) file for details
-
 
