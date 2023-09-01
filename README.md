@@ -67,7 +67,7 @@ heise - ct suggestion
 
 ## docker compose start/stop
 
-Bevor the first startup, the directory "<install dir>/etc-pihole" has to be created.
+Bevor the first startup, the directory "\<install dir\>/etc-pihole" has to be created.
 
 start containers
 
