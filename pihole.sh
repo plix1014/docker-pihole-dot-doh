@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/sh
 #
 ### BEGIN INIT INFO
-# Provides:          sudo
+# Provides:          pihole
 # Required-Start:    $local_fs $remote_fs
 # Required-Stop:
 # X-Start-Before:    
@@ -11,22 +11,22 @@
 # Description: https://github.com/pi-hole/docker-pi-hole/blob/master/README.md
 ### END INIT INFO
 
-NAME=pihole
-N="/etc/init.d/$NAME"
+#NAME=pihole
+#N="/etc/init.d/$NAME"
 
-. /lib/lsb/init-functions
+#. /lib/lsb/init-functions
 
 # set installation directory
 PIHOLE_BASE=/opt/docker/pihole
 
-PIHOLE_ENV=$PIHOLE_BASE/.pihole-env
+PIHOLE_ENV="$PIHOLE_BASE/.pihole-env"
 
 BK_DIR=$PIHOLE_BASE/backup
 
 CONTAINERS="pihole stubby dnscrypt"
 
 #---------------------------------------------------------------
-cd $PIHOLE_BASE
+cd $PIHOLE_BASE 2>/dev/null
 if [ $? -ne 0 ]; then
     echo "ERROR: PIHOLE_BASE '$PIHOLE_BASE' does not exist. Aborting...."
     exit 1
@@ -41,51 +41,63 @@ fi
 
 
 pihole_start() {
+    el=0
 
     # starting pihole with stubby and dnscrypt-proxy
-    docker-compose up -d
+    docker compose up -d
 
-    printf 'Waiting for pihole container to start up '
-    for i in $(seq 1 20); do
-	if [ "$(docker inspect -f "{{.State.Health.Status}}" pihole)" == "healthy" ] ; then
-	    echo ' OK'
-	    WEBPW=$(docker logs pihole 2> /dev/null | grep 'password:')
+    if [ "$1" = "wait" ]; then
+	printf 'Waiting for pihole container to start up '
+	for i in $(seq 1 20); do
+	    if [ "$(docker inspect -f "{{.State.Health.Status}}" pihole)" == "healthy" ] ; then
+		echo ' OK'
+		WEBPW=$(docker logs pihole 2> /dev/null | grep 'New password')
 
-	    if [ -n "$WEBPW" ]; then
-		echo -e "\n$WEBPW for your pi-hole: http://${SERVER_IP}/admin/"
+		echo "WEBPW = '$WEBPW'"
+		if [ -n "$WEBPW" ]; then
+		    echo -e "\n$WEBPW for your pi-hole: http://${SERVER_IP}/admin/"
+		else
+		    docker logs pihole 2> /dev/null | grep 'Pi-hole version is' |tail -1
+		    echo "pihole done"
+		fi
+
+		return $el
+	    else
+		sleep 3
+		printf '.'
 	    fi
 
-	    exit 0
-	else
-	    sleep 3
-	    printf '.'
-	fi
-
-	if [ $i -eq 20 ] ; then
-	    echo -e "\nTimed out waiting for Pi-hole start, consult your container logs for more info (\`docker logs pihole\`)"
-	    exit 1
-	fi
-    done;
+	    if [ $i -eq 20 ] ; then
+		echo -e "\nTimed out waiting for Pi-hole start, consult your container logs for more info (\`docker logs pihole\`)"
+		exit 1
+	    fi
+	done;
+    fi
+    return $el
 }
 
 
 pihole_stop() {
     # stopping pihole with stubby and dnscrypt-proxy
     echo 'Waiting for pihole container to shutdown '
-    docker-compose stop
+    docker compose stop
+
+    return 0
 }
 
 pihole_status() {
     for n in $CONTAINERS; do
 	docker ps -a --format '{{.Image}}|{{.Status}}|{{.Ports}}' -f name=$n | awk -F"|" '{printf("%-40s %-30s %s\n",$1,$2,$3)}'
     done
+    
+    return 0
 }
 
 
 
 pihole_backup() {
 
-    if [ "$(docker inspect -f "{{.State.Health.Status}}" pihole)" == "healthy" ] ; then
+    if [ "$(docker inspect -f "{{.State.Health.Status}}" pihole)" = "healthy" ] ; then
 	echo "Saving pihole config"
 	DATE=$(date +'%Y-%m-%d_%H')
 
@@ -118,11 +130,15 @@ pihole_backup() {
 
 
 #---------------------------------------------------------------
-set -e
+
+echo "DEBUG: `date +'%Y-%m-%d %H:%M:%S'` issued pihole $1 command" >> /root/pihole.restart.log 2>&1
 
 case "$1" in
   start)
 	pihole_start
+	;;
+  start_wait)
+	pihole_start wait
 	;;
   stop)
 	pihole_stop
@@ -139,9 +155,10 @@ case "$1" in
 	pihole_backup
 	;;
   *)
-	echo "Usage: $N {start|stop|restart|status|backup}" >&2
+	echo "Usage: ${0##*/} {start|stop|restart|start_wait|status|backup}" >&2
 	exit 1
 	;;
 esac
 
 exit 0
+

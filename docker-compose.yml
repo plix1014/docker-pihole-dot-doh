@@ -21,15 +21,25 @@ services:
       PROXY_LOCATION: ${SERVER_NAME}
       FTLCONF_LOCAL_IPV4: ${SERVER_IP}
       WEBPASSWORD: ${PIHOLE_WEB_PASSWORD}
-      PIHOLE_DNS_: '172.18.0.3#8053;172.18.0.4#5053'
+      PIHOLE_DNS_: 'stubby.pihole_dns#8053;dnscrypt-proxy.pihole_dns#5053'
+      CACHE_SIZE: ${CACHE_SIZE}
+      DNS_BOGUS_PRIV: ${DNS_BOGUS_PRIV}
+      DNS_FQDN_REQUIRED: ${DNS_FQDN_REQUIRED}
+      DNSMASQ_LISTENING: ${DNSMASQ_LISTENING}
+      DNSSEC: ${DNSSEC}
+      TEMPERATUREUNIT: ${TEMPERATUREUNIT}
+      REV_SERVER: ${REV_SERVER}
+      REV_SERVER_DOMAIN: ${REV_SERVER_DOMAIN}
+      REV_SERVER_TARGET: ${REV_SERVER_TARGET}
+      REV_SERVER_CIDR: ${REV_SERVER_CIDR}
     # Volumes store your data between container upgrades
     volumes:
       - './etc-pihole:/etc/pihole'
       - './etc-dnsmasq.d:/etc/dnsmasq.d'
     networks:
       dns:
-        ipv4_address: 172.18.0.2
-    restart: unless-stopped
+        ipv4_address: ${CONTAINER_NET}.2
+    restart: always
 
   stubby:
     image: ${stubby_image}
@@ -38,14 +48,14 @@ services:
       - ${STUBBY_CONF}:/opt/stubby/etc/stubby/stubby.yml:ro
     networks:
       dns:
-        ipv4_address: 172.18.0.3
+        ipv4_address: ${CONTAINER_NET}.3
     ports:
       - "10053:8053/udp"
     deploy:
       resources:
         limits:
           memory: 100M
-    restart: unless-stopped
+    restart: always
 
   server:
     image: ${dnscrypt_image}
@@ -54,14 +64,14 @@ services:
       - ${DNSCRYPT_CONF}:/config/dnscrypt-proxy.toml:ro
     networks:
       dns:
-        ipv4_address: 172.18.0.4
+        ipv4_address: ${CONTAINER_NET}.4
     ports:
       - "20053:5053/udp"
     deploy:
       resources:
         limits:
           memory: 100M
-    restart: unless-stopped
+    restart: always
 
 
 networks:
@@ -70,5 +80,5 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.18.0.0/16
+        - subnet: ${CONTAINER_NET}.0/16
 #
