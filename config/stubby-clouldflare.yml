@@ -66,10 +66,10 @@ tls_query_padding_blocksize: 128
 # https://tools.ietf.org/html/rfc7871
 # If you really want to use a resolver that sends ECS (such as Google or one of
 # the Quad9 ones) in order to gain better geo-location of content, then be aware
-# that this will expose a portion of your IP address in queries to some 
+# that this will expose a portion of your IP address in queries to some
 # authoritative servers. You will need to configure that server and also set this
 # parameter to 0 to fully enable ECS.
-edns_client_subnet_private : 1
+edns_client_subnet_private: 1
 
 ############################# CONNECTION SETTINGS ##############################
 # Set to 1 to instruct stubby to distribute queries across all available name
@@ -82,7 +82,7 @@ round_robin_upstreams: 1
 # EDNS0 option for keepalive idle timeout in milliseconds as specified in
 # https://tools.ietf.org/html/rfc7828
 # This keeps idle TLS connections open to avoid the overhead of opening a new
-# connection for every query. Note that if a given server doesn't implement 
+# connection for every query. Note that if a given server doesn't implement
 # EDNS0 keepalive and uses an idle timeout shorter than this stubby will backoff
 # from using that server because the server is always closing the connection.
 # This can degrade performance for certain configurations so reducing the
@@ -111,7 +111,7 @@ tls_ca_path: "/etc/ssl/certs/"
 
 # Set the acceptable ciphers for DNS over TLS.  With OpenSSL 1.1.1 this list is
 # for TLS1.2 and older only. Ciphers for TLS1.3 should be set with the
-# tls_ciphersuites option. This option can also be given per upstream. 
+# tls_ciphersuites option. This option can also be given per upstream.
 # (default as shown)
 # tls_cipher_list: "EECDH+AESGCM:EECDH+CHACHA20"
 
@@ -134,8 +134,8 @@ tls_ca_path: "/etc/ssl/certs/"
 # specify a different port. (Note that due to restrictions within the config
 # file parser, IPv6 address cannot start with `::` )
 listen_addresses:
-  -  0.0.0.0@8053
-  -  0:0:0:0:0:0:0:0@8053
+  - 0.0.0.0@8053
+  - 0:0:0:0:0:0:0:0@8053
 
 ############################### DNSSEC SETTINGS ################################
 # Require DNSSEC validation. This will withhold answers with BOGUS DNSSEC
@@ -179,11 +179,11 @@ dnssec_return_status: GETDNS_EXTENSION_TRUE
 # In Strict mode upstreams need either a tls_auth_name or a tls_pubkey_pinset
 # so the upstream can be authenticated.
 # The list below includes various public resolvers and some of the available test
-# servers but only has the getdns developer operated upstream enabled by default. 
+# servers but only has the getdns developer operated upstream enabled by default.
 ###############################################################################
 ####  Users are recommended to use more than one upstream for robustness  #####
 ###############################################################################
-# You can enable other resolvers by uncommenting the relevant 
+# You can enable other resolvers by uncommenting the relevant
 # section below or adding their information directly. Also see this list for
 # other test servers: https://dnsprivacy.org/wiki/display/DP/DNS+Privacy+Test+Servers
 # If you don't have IPv6 then comment then out those upstreams.
@@ -325,7 +325,7 @@ upstream_recursive_servers:
 #    tls_pubkey_pinset:
 #      - digest: "sha256"
 #        value: sG6kj+XJToXwt1M6+9BeCz1SOj/1/mdZn56OZvCyZZc=
-## Foundation for Applied Privacy 
+## Foundation for Applied Privacy
 #  - address_data: 146.255.56.98
 #    tls_auth_name: "dot1.applied-privacy.net"
 
@@ -343,7 +343,7 @@ upstream_recursive_servers:
 #    tls_auth_name: "dns11.quad9.net"
 #  - address_data: 2620:fe::fe:11
 #    tls_auth_name: "dns11.quad9.net"
-## Quad 9 'insecure' service - No filtering, does DNSSEC, doesn't send ECS 
+## Quad 9 'insecure' service - No filtering, does DNSSEC, doesn't send ECS
 #  - address_data: 2620:fe::10
 #    tls_auth_name: "dns10.quad9.net"
 #  - address_data: 2620:fe::fe:10
@@ -428,7 +428,7 @@ upstream_recursive_servers:
 #    tls_pubkey_pinset:
 #      - digest: "sha256"
 #        value: sG6kj+XJToXwt1M6+9BeCz1SOj/1/mdZn56OZvCyZZc=
-## Foundation for Applied Privacy 
+## Foundation for Applied Privacy
 #  - address_data: 2a02:1b8:10:234::2
 #    tls_auth_name: "dot1.applied-privacy.net"
 
@@ -463,7 +463,7 @@ upstream_recursive_servers:
 #      - digest: "sha256"
 #        value: wTeXHM8aczvhRSi0cv2qOXkXInoDU+2C+M8MpRyT3OI=
 ### A few unicast test servers ###
-## Foundation for Applied Privacy 
+## Foundation for Applied Privacy
 #  - address_data: 146.255.56.98
 #    tls_port: 443
 #    tls_auth_name: "dot1.applied-privacy.net"
