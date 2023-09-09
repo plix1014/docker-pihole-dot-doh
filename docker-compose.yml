@@ -67,6 +67,12 @@ services:
         ipv4_address: ${CONTAINER_NET}.4
     ports:
       - "20053:5053/udp"
+    healthcheck:
+      test: [ "CMD", "/usr/local/bin/dnsprobe", "heise.de", "0.0.0.0:5053" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
     deploy:
       resources:
         limits:
