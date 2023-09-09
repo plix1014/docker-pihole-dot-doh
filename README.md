@@ -13,7 +13,7 @@ Docker images used:
 
 * [Pi-hole docker](https://github.com/pi-hole/docker-pi-hole) - AD-Blocker
 * [DNSCrypt-proxy docker](https://github.com/klutchell/dnscrypt-proxy-docker) - DoH Resolver
-* [Stubby docker](https://github.com/MatthewVance/stubby-docker) - DoT Resolver
+* [Stubby docker](https://github.com/MatthewVance/stubby-docker) - DoT Resolver (Dockerfile to build an arm64 version see [stubby](stubby) subdir.)
 
 
 ## configuration
@@ -42,7 +42,7 @@ Replace the IP with yours
 
 ### stubby - DoT
 
-The subdirectory *stubby* contains the modified Dockerfile from [Matthew Vance](https://github.com/TrojaForks/stubby-docker/tree/master/stubby) to build an arm64 docker image.
+The subdirectory *stubby* contains the modified Dockerfile from [Matthew Vance](https://github.com/TrojaForks/stubby-docker/tree/master/stubby) to build an arm64 docker image for this example.
 
 ### config dir
 
