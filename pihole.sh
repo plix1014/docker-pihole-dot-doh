@@ -19,7 +19,7 @@
 # set installation directory
 PIHOLE_BASE=/opt/docker/pihole
 
-PIHOLE_ENV="$PIHOLE_BASE/.pihole-env"
+PIHOLE_ENV="$PIHOLE_BASE/.env"
 
 BK_DIR=$PIHOLE_BASE/backup
 

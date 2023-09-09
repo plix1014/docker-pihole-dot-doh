@@ -27,20 +27,10 @@ you need to set at least the *PIHOLE_WEB_PASSWORD* variable.
 Set all other parameters according to your needs
 
 
-### .pihole-env
-
-Env file used by optional pihole.sh script.
-
-you need to set at least the *PIHOLE_WEB_PASSWORD* variable.
-
-Set all other parameters according to your needs
-
-
 ### pihole.sh
 
 pls. set the variable *PIHOLE_BASE* in the script to your installation path 
 
-If you don't want to use .pihole-env you have to delete the source command from the script and set the *SERVER_NAME* variable in the script.
 
 
 ### 99-my-config.conf
