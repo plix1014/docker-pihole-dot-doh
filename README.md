@@ -114,13 +114,13 @@ Saving pihole config
 
 ### check DoT resolver
 
-* dig @172.18.0.1 -p 10053 ct.de
+* dig @172.25.0.1 -p 10053 ct.de
 * dig @172.25.0.3 -p 8053 ct.de
 
 ```
-$ dig @172.18.0.1 -p 10053 ct.de
+$ dig @172.25.0.1 -p 10053 ct.de
 
-; <<>> DiG 9.18.16-1~deb12u1-Debian <<>> @172.18.0.1 -p 10053 ct.de
+; <<>> DiG 9.18.16-1~deb12u1-Debian <<>> @172.25.0.1 -p 10053 ct.de
 ; (1 server found)
 ;; global options: +cmd
 ;; Got answer:
@@ -137,7 +137,7 @@ $ dig @172.18.0.1 -p 10053 ct.de
 ct.de.			28698	IN	A	193.99.144.80
 
 ;; Query time: 1819 msec
-;; SERVER: 172.18.0.1#10053(172.18.0.1) (UDP)
+;; SERVER: 172.25.0.1#10053(172.25.0.1) (UDP)
 ;; WHEN: Tue Aug 15 14:40:31 CEST 2023
 ;; MSG SIZE  rcvd: 78
 
@@ -145,13 +145,13 @@ ct.de.			28698	IN	A	193.99.144.80
 
 ### check DoH resolver
 
-* dig @172.18.0.1 -p 20053 ct.de
+* dig @172.25.0.1 -p 20053 ct.de
 * dig @172.25.0.4 -p 5053 ct.de
 
 ```
-$ dig @172.18.0.1 -p 20053 ct.de
+$ dig @172.25.0.1 -p 20053 ct.de
 
-; <<>> DiG 9.18.16-1~deb12u1-Debian <<>> @172.18.0.1 -p 20053 ct.de
+; <<>> DiG 9.18.16-1~deb12u1-Debian <<>> @172.25.0.1 -p 20053 ct.de
 ; (1 server found)
 ;; global options: +cmd
 ;; Got answer:
@@ -167,7 +167,7 @@ $ dig @172.18.0.1 -p 20053 ct.de
 ct.de.			43097	IN	A	193.99.144.80
 
 ;; Query time: 0 msec
-;; SERVER: 172.18.0.1#20053(172.18.0.1) (UDP)
+;; SERVER: 172.25.0.1#20053(172.25.0.1) (UDP)
 ;; WHEN: Tue Aug 15 14:41:16 CEST 2023
 ;; MSG SIZE  rcvd: 50
 ```
