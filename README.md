@@ -107,8 +107,15 @@ Saving pihole config
 ```
 
 
+## DNS resolver
+
+![Pi-hole Upstream DNS config](images/pihole_upstream_dns.png)
+
 
 ### check DoT resolver
+
+* dig @172.18.0.1 -p 10053 ct.de
+* dig @172.25.0.3 -p 8053 ct.de
 
 ```
 $ dig @172.18.0.1 -p 10053 ct.de
@@ -137,6 +144,9 @@ ct.de.			28698	IN	A	193.99.144.80
 ```
 
 ### check DoH resolver
+
+* dig @172.18.0.1 -p 20053 ct.de
+* dig @172.25.0.4 -p 5053 ct.de
 
 ```
 $ dig @172.18.0.1 -p 20053 ct.de
