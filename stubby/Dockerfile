@@ -1,7 +1,7 @@
 FROM debian:bookworm as openssl
 
-ENV VERSION_OPENSSL=openssl-3.0.10 \
-    SHA256_OPENSSL=1761d4f5b13a1028b9b6f3d4b8e17feb0cedc9370f6afe61d7193d2cdce83323 \
+ENV VERSION_OPENSSL=openssl-3.0.12 \
+    SHA256_OPENSSL=f93c9e8edde5e9166119de31755fc87b4aa34863662f67ddfcba14d0b6b69b61 \
     SOURCE_OPENSSL=https://www.openssl.org/source/ \
     OPGP_OPENSSL=EFC0A467D613CB83C7ED6D30D894E2CE8B3D79F5
 
@@ -52,7 +52,7 @@ RUN set -e -x && \
 FROM debian:bookworm as stubby
 LABEL maintainer="Matthew Vance"
 
-ENV VERSION_GETDNS=v1.7.0
+ENV VERSION_GETDNS=v1.7.3
 
 WORKDIR /tmp/src
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
