@@ -10,7 +10,7 @@ services:
     hostname: ${SERVER_NAME}
     depends_on:
       - stubby
-      - server
+      - dnscrypt
     ports:
       - "53:53/udp"
       - "53:53/tcp"
@@ -57,7 +57,7 @@ services:
           memory: 100M
     restart: always
 
-  server:
+  dnscrypt:
     image: ${dnscrypt_image}
     container_name: dnscrypt-proxy
     volumes:
@@ -68,7 +68,7 @@ services:
     ports:
       - "20053:5053/udp"
     healthcheck:
-      test: [ "CMD", "/usr/local/bin/dnsprobe", "heise.de", "0.0.0.0:5053" ]
+      test: ["CMD", "/usr/local/bin/dnsprobe", "heise.de", "0.0.0.0:5053"]
       interval: 30s
       timeout: 10s
       retries: 5
