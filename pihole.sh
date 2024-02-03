@@ -25,6 +25,10 @@ BK_DIR=$PIHOLE_BASE/backup
 
 CONTAINERS="pihole stubby dnscrypt"
 
+
+# number of days to keep the backups
+KEEP=30
+
 #---------------------------------------------------------------
 cd $PIHOLE_BASE 2>/dev/null
 if [ $? -ne 0 ]; then
@@ -102,7 +106,7 @@ pihole_backup() {
 	DATE=$(date +'%Y-%m-%d_%H')
 
 	printf "  creating backup "
-	docker exec -it pihole bash -c "cd /tmp && pihole -a -t"
+	docker exec -i pihole bash -c "cd /tmp && pihole -a -t"
 	if [ $? -eq 0 ]; then
 	    echo "OK."
 	else
@@ -111,7 +115,7 @@ pihole_backup() {
 	fi
 
 	# get backup filename
-	BK_NAME=$(docker exec -it pihole bash -c "ls -t /tmp/pi-hole-${SERVER_NAME}-teleporter_${DATE}-*.gz | head -1" | perl -pe 's/\r//')
+	BK_NAME=$(docker exec -i pihole bash -c "ls -t /tmp/pi-hole-${SERVER_NAME}-teleporter_${DATE}-*.gz | head -1" | perl -pe 's/\r//')
 
 	printf "  copy backup $BK_NAME to $BK_DIR "
 	docker cp pihole:$BK_NAME $BK_DIR
@@ -121,6 +125,9 @@ pihole_backup() {
 	else
 	    echo "ERROR: failed to copy $BK_NAME to host"
 	fi
+
+	echo "cleanup old backups"
+	find $BK_DIR/ -type f -name "pi-hole-${SERVER_NAME}-teleporter_* -mtime +${KEEP}" -exec rm {} \;
     else
 	echo "ERROR: pihole is down. Please start pihole"
 	exit 3
@@ -129,9 +136,13 @@ pihole_backup() {
 }
 
 
+pihole_enter() {
+    docker exec -it pihole bash
+}
+
 #---------------------------------------------------------------
 
-echo "DEBUG: `date +'%Y-%m-%d %H:%M:%S'` issued pihole $1 command" >> /root/pihole.restart.log 2>&1
+echo "DEBUG: `date +'%Y-%m-%d %H:%M:%S'` issued pihole '$1' command" >> $PIHOLE_BASE/log/pihole.restart.log 2>&1
 
 case "$1" in
   start)
@@ -154,8 +165,11 @@ case "$1" in
   backup)
 	pihole_backup
 	;;
+  enter)
+	pihole_enter
+	;;
   *)
-	echo "Usage: ${0##*/} {start|stop|restart|start_wait|status|backup}" >&2
+	echo "Usage: ${0##*/} {start|stop|restart|start_wait|status|backup|enter}" >&2
 	exit 1
 	;;
 esac
