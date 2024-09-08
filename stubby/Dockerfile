@@ -1,9 +1,10 @@
-FROM debian:bookworm as openssl
+FROM debian:bookworm AS openssl
 
-ENV VERSION_OPENSSL=openssl-3.0.12 \
-    SHA256_OPENSSL=f93c9e8edde5e9166119de31755fc87b4aa34863662f67ddfcba14d0b6b69b61 \
-    SOURCE_OPENSSL=https://www.openssl.org/source/ \
-    OPGP_OPENSSL=EFC0A467D613CB83C7ED6D30D894E2CE8B3D79F5
+ENV VERSION_OPENSSL=openssl-3.3.2
+ENV SHA256_OPENSSL=2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281 \
+    SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/${VERSION_OPENSSL} \
+    OPGP_OPENSSL=BA5473A2B0587B07FB27CF2D216094DFD0CB81EF
+
 
 WORKDIR /tmp/src
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -18,9 +19,9 @@ RUN set -e -x && \
         gnupg \
         libidn2-0-dev \
         libssl-dev && \
-    curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
+    curl -L ${SOURCE_OPENSSL}/${VERSION_OPENSSL}.tar.gz -o openssl.tar.gz && \
     echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
-    curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
+    curl -L ${SOURCE_OPENSSL}/${VERSION_OPENSSL}.tar.gz.asc -o openssl.tar.gz.asc && \
     GNUPGHOME="$(mktemp -d)" && \
     export GNUPGHOME && \
     gpg --no-tty --keyserver keys.openpgp.org --recv-keys "$OPGP_OPENSSL" && \
@@ -35,7 +36,6 @@ RUN set -e -x && \
         $ECFLAG \
         -DOPENSSL_NO_HEARTBEATS \
         no-weak-ssl-ciphers \
-        no-ssl2 \
         no-ssl3 \
         shared \
         -fstack-protector-strong && \
@@ -49,7 +49,7 @@ RUN set -e -x && \
         /var/tmp/* \
         /var/lib/apt/lists/*
 
-FROM debian:bookworm as stubby
+FROM debian:bookworm AS stubby
 LABEL maintainer="Matthew Vance"
 
 ENV VERSION_GETDNS=v1.7.3
@@ -94,7 +94,7 @@ COPY --from=openssl /opt/openssl /opt/openssl
 COPY --from=stubby /opt/stubby /opt/stubby
 COPY stubby.yml /opt/stubby/etc/stubby/stubby.yml
 
-ENV PATH /opt/stubby/bin:$PATH
+ENV PATH=/opt/stubby/bin:$PATH
 
 RUN set -e -x && \
     debian_frontend=noninteractive apt-get update && apt-get install -y --no-install-recommends \
