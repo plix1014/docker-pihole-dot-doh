@@ -6,6 +6,7 @@ on:
       - 'stubby/Dockerfile'
       - 'stubby/openssl.env'
       - 'stubby/stubby.yml'
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: stubby-vance-arm
@@ -21,10 +22,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install dependencies for verification
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker login
         run: |
-          sudo apt-get update
-          sudo apt-get install -y curl gnupg coreutils
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}" --password-stdin
 
       - name: Load OpenSSL env
         id: load_env
@@ -51,12 +59,6 @@ jobs:
           echo "IMAGE_TAG_VERSION=$IMAGE_TAG_VERSION" >> $GITHUB_ENV
           echo "IMAGE_TAG_LATEST=$IMAGE_TAG_LATEST" >> $GITHUB_ENV
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Verify OpenSSL tarball for 1.7.3-x
         run: |
           cd ${{ env.WORKDIR }}
@@ -64,46 +66,33 @@ jobs:
           echo "OpenSSL Version: ${VERSION_OPENSSL}"
           echo "Expected SHA256: ${SHA256_OPENSSL}"
           echo "Expected GPG Key: ${OPGP_OPENSSL}"
-          echo "Downloading OpenSSL ${VERSION_OPENSSL}..."
           curl -sSLO "https://github.com/openssl/openssl/releases/download/${VERSION_OPENSSL}/${VERSION_OPENSSL}.tar.gz"
           curl -sSLO "https://github.com/openssl/openssl/releases/download/${VERSION_OPENSSL}/${VERSION_OPENSSL}.tar.gz.asc"
-
-          echo "Verifying SHA256 checksum..."
+          echo "Verifying SHA256..."
           sha256sum -c <<<"${SHA256_OPENSSL}  ${VERSION_OPENSSL}.tar.gz"
-
           echo "Verifying GPG signature..."
           export GNUPGHOME="$(mktemp -d)"
           gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "${OPGP_OPENSSL}"
           gpg --batch --verify "${VERSION_OPENSSL}.tar.gz.asc" "${VERSION_OPENSSL}.tar.gz"
           rm -rf "$GNUPGHOME"
+          echo "✅ OpenSSL ${VERSION_OPENSSL} verified"
 
-          echo "✅ OpenSSL ${VERSION_OPENSSL} successfully verified"
-
-      - name: Build Docker image for 1.7.3-x (arm64)
+      - name: Build and push Docker image for 1.7.3-x (arm64)
         run: |
           cd ${{ env.WORKDIR }}
-          docker build \
+          docker buildx build \
             --platform ${{ env.PLATFORM }} \
             --build-arg VERSION_OPENSSL=${VERSION_OPENSSL} \
             --build-arg SHA256_OPENSSL=${SHA256_OPENSSL} \
             --build-arg OPGP_OPENSSL=${OPGP_OPENSSL} \
             -t ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} \
-            .
+            --push
 
-      - name: Push 1.7.3-x tag
+      - name: Tag and push latest and 1.7.3
         run: |
-          echo "Pushing Docker image tag: ${IMAGE_TAG_X}"
-          docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X}
-
-      - name: Tag latest and 1.7.3 from 1.7.3-x
-        run: |
-          echo "Tagging Docker image for latest and ${IMAGE_TAG_VERSION}"
+          docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X}
           docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
           docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_LATEST}
-
-      - name: Push latest and 1.7.3 tags
-        run: |
-          echo "Pushing Docker image tags: ${IMAGE_TAG_VERSION} and ${IMAGE_TAG_LATEST}"
           docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
           docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_LATEST}
 
