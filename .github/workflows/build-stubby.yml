@@ -80,4 +80,17 @@ jobs:
           docker buildx build \
             --platform ${{ env.PLATFORM }} \
             --build-arg VERSION_OPENSSL=${VERSION_OPENSSL} \
+            --build-arg SHA256_OPENSSL=${SHA256_OPENSSL} \
+            --build-arg OPGP_OPENSSL=${OPGP_OPENSSL} \
+            -t ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} \
+            --push \
+            ${{ env.WORKDIR }}
+
+      - name: Tag and push latest and 1.7.3
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X}
+          docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
+          docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_LATEST}
+          docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
+          docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_LATEST}
 
