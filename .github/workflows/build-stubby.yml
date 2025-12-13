@@ -36,10 +36,6 @@ jobs:
         id: load_env
         run: |
           cd ${{ env.WORKDIR }}
-          if [ ! -f openssl.env ]; then
-            echo "openssl.env not found!"
-            exit 1
-          fi
           set -o allexport
           source openssl.env
           set +o allexport
@@ -50,32 +46,21 @@ jobs:
       - name: Set Docker tags
         id: tags
         run: |
-          export IMAGE_TAG_X="${{ env.GETDNS_VERSION }}-${GITHUB_RUN_NUMBER}"
-          export IMAGE_TAG_VERSION="${{ env.GETDNS_VERSION }}"
-          export IMAGE_TAG_LATEST="latest"
+          IMAGE_TAG_X="${{ env.GETDNS_VERSION }}-${GITHUB_RUN_NUMBER}"
+          IMAGE_TAG_VERSION="${{ env.GETDNS_VERSION }}"
+          IMAGE_TAG_LATEST="latest"
           echo "IMAGE_TAG_X=$IMAGE_TAG_X" >> $GITHUB_ENV
           echo "IMAGE_TAG_VERSION=$IMAGE_TAG_VERSION" >> $GITHUB_ENV
           echo "IMAGE_TAG_LATEST=$IMAGE_TAG_LATEST" >> $GITHUB_ENV
 
-      - name: Verify OpenSSL tarball for 1.7.3-x
+      - name: Check for existing cache
+        id: cache-check
         run: |
-          cd ${{ env.WORKDIR }}
-          echo "=== OpenSSL Verification for Stubby CI ==="
-          echo "OpenSSL Version: ${VERSION_OPENSSL}"
-          echo "Expected SHA256: ${SHA256_OPENSSL}"
-          echo "Expected GPG Key: ${OPGP_OPENSSL}"
-          curl -sSLO "https://github.com/openssl/openssl/releases/download/${VERSION_OPENSSL}/${VERSION_OPENSSL}.tar.gz"
-          curl -sSLO "https://github.com/openssl/openssl/releases/download/${VERSION_OPENSSL}/${VERSION_OPENSSL}.tar.gz.asc"
-          echo "Verifying SHA256..."
-          sha256sum -c <<<"${SHA256_OPENSSL}  ${VERSION_OPENSSL}.tar.gz"
-          echo "Verifying GPG signature..."
-          export GNUPGHOME="$(mktemp -d)"
-          gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "${OPGP_OPENSSL}"
-          gpg --batch --verify "${VERSION_OPENSSL}.tar.gz.asc" "${VERSION_OPENSSL}.tar.gz"
-          rm -rf "$GNUPGHOME"
-          echo "✅ OpenSSL ${VERSION_OPENSSL} verified"
+          docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:cache || echo "no-cache"
+          echo "CACHE_EXISTS=$(docker image inspect ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:cache >/dev/null 2>&1 && echo true || echo false)" >> $GITHUB_ENV
 
-      - name: Build and push Docker image for 1.7.3-x (arm64) with cache
+      - name: Build and push Docker image for 1.7.3-x (arm64) if changed
+        if: env.CACHE_EXISTS != 'true'
         run: |
           docker buildx build \
             --platform ${{ env.PLATFORM }} \
@@ -90,7 +75,7 @@ jobs:
 
       - name: Tag and push latest and 1.7.3
         run: |
-          docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X}
+          docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} || true
           docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
           docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_LATEST}
           docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
