@@ -56,7 +56,8 @@ jobs:
       - name: Check for existing cache
         id: cache-check
         run: |
-          docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:cache || echo "no-cache"
+          docker pull --platform linux/arm64 ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} || echo "no-cache"
+
           echo "CACHE_EXISTS=$(docker image inspect ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:cache >/dev/null 2>&1 && echo true || echo false)" >> $GITHUB_ENV
 
       - name: Build and push Docker image for 1.7.3-x (arm64) if changed
@@ -75,7 +76,7 @@ jobs:
 
       - name: Tag and push latest and 1.7.3
         run: |
-          docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} || true
+          docker pull --platform linux/arm64 ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} || true
           docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
           docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_LATEST}
           docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
