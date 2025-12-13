@@ -1,0 +1,104 @@
+name: Build and Push Stubby
+
+on:
+  push:
+    paths:
+      - 'stubby/Dockerfile'
+      - 'stubby/openssl.env'
+      - 'stubby/stubby.yml'
+
+env:
+  IMAGE_NAME: stubby-vance-arm
+  GETDNS_VERSION: 1.7.3
+  WORKDIR: stubby
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies for verification
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl gnupg coreutils
+
+      - name: Load OpenSSL env
+        id: load_env
+        run: |
+          cd ${{ env.WORKDIR }}
+          if [ ! -f openssl.env ]; then
+            echo "openssl.env not found!"
+            exit 1
+          fi
+          set -o allexport
+          source openssl.env
+          set +o allexport
+          echo "VERSION_OPENSSL=$VERSION_OPENSSL" >> $GITHUB_ENV
+          echo "SHA256_OPENSSL=$SHA256_OPENSSL" >> $GITHUB_ENV
+          echo "OPGP_OPENSSL=$OPGP_OPENSSL" >> $GITHUB_ENV
+
+      - name: Set Docker tags
+        id: tags
+        run: |
+          export IMAGE_TAG_X="${{ env.GETDNS_VERSION }}-${GITHUB_RUN_NUMBER}"
+          export IMAGE_TAG_VERSION="${{ env.GETDNS_VERSION }}"
+          export IMAGE_TAG_LATEST="latest"
+          echo "IMAGE_TAG_X=$IMAGE_TAG_X" >> $GITHUB_ENV
+          echo "IMAGE_TAG_VERSION=$IMAGE_TAG_VERSION" >> $GITHUB_ENV
+          echo "IMAGE_TAG_LATEST=$IMAGE_TAG_LATEST" >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Verify OpenSSL tarball for 1.7.3-x
+        run: |
+          cd ${{ env.WORKDIR }}
+          echo "=== OpenSSL Verification for Stubby CI ==="
+          echo "OpenSSL Version: ${VERSION_OPENSSL}"
+          echo "Expected SHA256: ${SHA256_OPENSSL}"
+          echo "Expected GPG Key: ${OPGP_OPENSSL}"
+          echo "Downloading OpenSSL ${VERSION_OPENSSL}..."
+          curl -sSLO "https://github.com/openssl/openssl/releases/download/${VERSION_OPENSSL}/${VERSION_OPENSSL}.tar.gz"
+          curl -sSLO "https://github.com/openssl/openssl/releases/download/${VERSION_OPENSSL}/${VERSION_OPENSSL}.tar.gz.asc"
+
+          echo "Verifying SHA256 checksum..."
+          sha256sum -c <<<"${SHA256_OPENSSL}  ${VERSION_OPENSSL}.tar.gz"
+
+          echo "Verifying GPG signature..."
+          export GNUPGHOME="$(mktemp -d)"
+          gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "${OPGP_OPENSSL}"
+          gpg --batch --verify "${VERSION_OPENSSL}.tar.gz.asc" "${VERSION_OPENSSL}.tar.gz"
+          rm -rf "$GNUPGHOME"
+
+          echo "✅ OpenSSL ${VERSION_OPENSSL} successfully verified"
+
+      - name: Build Docker image for 1.7.3-x
+        run: |
+          cd ${{ env.WORKDIR }}
+          docker build \
+            --build-arg VERSION_OPENSSL=${VERSION_OPENSSL} \
+            --build-arg SHA256_OPENSSL=${SHA256_OPENSSL} \
+            --build-arg OPGP_OPENSSL=${OPGP_OPENSSL} \
+            -t ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_X} \
+            .
+
+      - name: Push 1.7.3-x tag
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_X}
+
+      - name: Tag latest and 1.7.3 from 1.7.3-x
+        run: |
+          docker tag ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_VERSION}
+          docker tag ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_LATEST}
+
+      - name: Push latest and 1.7.3 tags
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_VERSION}
+          docker push ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_LATEST}
+
