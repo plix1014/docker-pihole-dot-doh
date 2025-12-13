@@ -1,4 +1,4 @@
-IMAGE_NAME ?= stubby
+IMAGE_NAME ?= stubby-vance-arm
 IMAGE_TAG  ?= latest
 REGISTRY   ?= docker.io
 REPO_USER  ?= $(USER)
