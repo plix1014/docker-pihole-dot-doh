@@ -11,6 +11,7 @@ env:
   IMAGE_NAME: stubby-vance-arm
   GETDNS_VERSION: 1.7.3
   WORKDIR: stubby
+  PLATFORM: linux/arm64
 
 jobs:
   build:
@@ -78,27 +79,28 @@ jobs:
 
           echo "✅ OpenSSL ${VERSION_OPENSSL} successfully verified"
 
-      - name: Build Docker image for 1.7.3-x
+      - name: Build Docker image for 1.7.3-x (arm64)
         run: |
           cd ${{ env.WORKDIR }}
           docker build \
+            --platform ${{ env.PLATFORM }} \
             --build-arg VERSION_OPENSSL=${VERSION_OPENSSL} \
             --build-arg SHA256_OPENSSL=${SHA256_OPENSSL} \
             --build-arg OPGP_OPENSSL=${OPGP_OPENSSL} \
-            -t ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_X} \
+            -t ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} \
             .
 
       - name: Push 1.7.3-x tag
         run: |
-          docker push ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_X}
+          docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X}
 
       - name: Tag latest and 1.7.3 from 1.7.3-x
         run: |
-          docker tag ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_VERSION}
-          docker tag ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_LATEST}
+          docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
+          docker tag ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_LATEST}
 
       - name: Push latest and 1.7.3 tags
         run: |
-          docker push ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_VERSION}
-          docker push ${{ secrets.DOCKERHUB_USER }}/stubby-vance-arm:${IMAGE_TAG_LATEST}
+          docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_VERSION}
+          docker push ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_LATEST}
 
