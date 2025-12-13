@@ -86,7 +86,8 @@ jobs:
             --build-arg SHA256_OPENSSL=${SHA256_OPENSSL} \
             --build-arg OPGP_OPENSSL=${OPGP_OPENSSL} \
             -t ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} \
-            --push
+            --push \
+            stubby
 
       - name: Tag and push latest and 1.7.3
         run: |
