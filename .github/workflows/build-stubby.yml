@@ -79,7 +79,6 @@ jobs:
 
       - name: Build and push Docker image for 1.7.3-x (arm64)
         run: |
-          cd ${{ env.WORKDIR }}
           docker buildx build \
             --platform ${{ env.PLATFORM }} \
             --build-arg VERSION_OPENSSL=${VERSION_OPENSSL} \
@@ -87,7 +86,7 @@ jobs:
             --build-arg OPGP_OPENSSL=${OPGP_OPENSSL} \
             -t ${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG_X} \
             --push \
-            stubby
+            ${{ env.WORKDIR }}
 
       - name: Tag and push latest and 1.7.3
         run: |
